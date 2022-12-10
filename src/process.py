@@ -1,7 +1,7 @@
 import pandas as pd
 
 import re
-
+from common import ROLES
 from store import Vacancies
 
 
@@ -16,11 +16,9 @@ def get_salary_by_area(area_list, role=None):
         data = list(vacancies.get_vacancies())
 
     vacancies.close()
+
     df = pd.DataFrame.from_records(data, index='_id')
-
-    df = df.groupby('area').median(
-        'salary').sort_values(by='salary', ascending=False)
-
+    df = df.groupby('area').median('salary').sort_values(by='salary', ascending=False)
     df = df.loc[df.index.intersection(area_list)]
 
     return (df.index, df['salary'])
@@ -72,3 +70,46 @@ def get_specialization_proportions():
         'sys_admin': sys_admin,
         'other': other
     }
+
+def get_specializations_salary():
+
+    vacancies = Vacancies()
+    vacancies.open()
+
+    salary_by_sepcialization = dict()
+    
+    for role in ROLES:
+        data = list(vacancies.get_vacancy_by_role(role))
+
+        if (len(data) < 10):
+            continue
+
+        df = pd.DataFrame.from_records(data)
+
+        salary = df['salary']
+        salary_by_sepcialization[role] = {
+            'min': round(salary.min() / 1000),
+            'max': round(salary.max() / 1000),
+            'median':round (salary.median() / 1000)
+        }
+
+    vacancies.close()
+
+    return salary_by_sepcialization
+
+
+def get_specializations_experience(role):
+    experience_list =  ['noExperience', 'between1And3', 'between3And6', 'moreThan6']
+
+    vacancies = Vacancies()
+    vacancies.open()
+
+    vacancy_count_by_experience = []
+
+    for experience in experience_list:
+        vacancy_count = vacancies.get_experience(experience, role)
+        vacancy_count_by_experience.append( vacancy_count)
+
+    vacancies.close()
+
+    return vacancy_count_by_experience

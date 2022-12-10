@@ -3,7 +3,6 @@ import re
 
 from common import ROLES
 
-
 DEFAULT_URI = 'mongodb://localhost:27017/'
 DEFAULT_DB = 'hh'
 
@@ -29,22 +28,23 @@ class Vacancies:
         return self.db[self.collection].find()
 
     def get_vacancy_by_role(self, role):
-        result = self.db[self.collection].find(
-            {'professional_roles.id': {'$in': ROLES[role]}})
-
+        result = self.db[self.collection].find({'professional_roles.id': {'$in': ROLES[role]}})
         return result
 
     def count_vacancy(self, name, role):
         return self.db[self.collection].count_documents({'$and': [{'name': {'$regex': name}}, {'professional_roles.id': {'$in': ROLES[role]}}]})
 
     def get_vacancy_by_skills(self, skills):
-        case_insensitive_skills = list(
-            map(lambda skill: re.compile(f'^{skill}$', re.IGNORECASE), skills))
-
-        result = self.db[self.collection].find(
-            {'key_skills.name': {'$in': case_insensitive_skills}})
-
+        case_insensitive_skills = list(map(lambda skill: re.compile(f'^{skill}$', re.IGNORECASE), skills))
+        result = self.db[self.collection].find({'key_skills.name': {'$in': case_insensitive_skills}})
         return result
 
     def get_collection_size(self):
         return self.db[self.collection].count_documents({})
+
+    def get_salary(self, name, role):
+        result = self.db[self.collection].find({'$and': [{'name': {'$regex': name}}, {'professional_roles.id': {'$in': ROLES[role]}}]})
+        return result
+
+    def get_experience(self, experience, role):
+        return self.db[self.collection].count_documents({'$and': [{'experience.id': {'$regex': experience}}, {'professional_roles.id': {'$in': ROLES[role]}}]})
